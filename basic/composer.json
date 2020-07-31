@@ -19,7 +19,8 @@
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0 || ~2.1.0",
         "kartik-v/yii2-widget-colorinput": "@dev",
-        "philippfrenzel/yii2fullcalendar": "~3.5.1"
+        "philippfrenzel/yii2fullcalendar": "~3.5.1",
+        "janisto/yii2-timepicker": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

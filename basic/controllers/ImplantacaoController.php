@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\EstadoImplantacao;
+use app\models\HorarioIndisponivel;
 use Yii;
 use app\models\Implantacao;
 use app\models\ImplantacaoSearch;
@@ -59,6 +60,17 @@ class ImplantacaoController extends Controller
             $evento->title = $implantacao->razao_social;
             $evento->start = $implantacao->data;
             $evento->backgroundColor = $implantacao->estadoImplantacao->cor;
+            $eventos[] = $evento;
+        }
+
+        $horariosIndisponiveis = HorarioIndisponivel::find()->all();
+
+        foreach ($horariosIndisponiveis as $horarioIndisponivel) {
+            $evento = new \yii2fullcalendar\models\Event();
+            $evento->title = $horarioIndisponivel->motivo;
+            $evento->start = $horarioIndisponivel->data_inicio;
+            $evento->end = $horarioIndisponivel->data_fim;
+            $evento->backgroundColor = "#aeafaf";
             $eventos[] = $evento;
         }
 
@@ -167,8 +179,6 @@ class ImplantacaoController extends Controller
         } else {
             throw new ForbiddenHttpException("Você não pode excluir essa implantação.");
         }
-
-        
     }
 
     /**

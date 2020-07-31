@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\web\ForbiddenHttpException;
 
 /**
  * This is the model class for table "implantacao".
@@ -29,7 +30,7 @@ use Yii;
  */
 class Implantacao extends \yii\db\ActiveRecord
 {
-    
+
     public $hora = "";
 
     /**
@@ -120,37 +121,58 @@ class Implantacao extends \yii\db\ActiveRecord
     /**
      * Obtém os horários disponíveis
      */
-    public static function getHorasDisponiveis($data) {
+    public static function getHorasDisponiveis($data)
+    {
 
-        $horariosPossiveis = ['09:00:00','10:00:00','11:00:00','14:00:00','15:00:00','16:00:00'];
+        // Busca os horários possíveis
+        $horariosPossiveis = HorarioDisponivel::find()->all();
+
+        // Busca os agentes
         $totalAgentes = Usuario::find()->where(['funcao' => Funcao::find()->where(['nome' => 'Agente de Suporte'])->one()->id])->count();
 
         $horarios = [];
 
         foreach ($horariosPossiveis as $hora) {
-            $dataHora = $data . ' ' . $hora;
-            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data",['data' => $dataHora])->count();
+
+            // Busca os horarios já marcados
+            $dataHora = $data . ' ' . $hora->horario;
+            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data", ['data' => $dataHora])->count();
+
+            // Verifica a disponibilidade do horário sabendo que
+            // é indisponível se entiver dentro e algum intervalo
+            // de indisponibilidadea
+            $isIndisponivel = HorarioIndisponivel::verificarSeHoraEstaIndisponivel($dataHora);
+            if ($isIndisponivel) {
+                continue;
+            }
+
+            // Verifica se haverão agentes disponíveis
             if ($count < $totalAgentes) {
-                $horarios[$hora] = $hora;
+                $horarios[$hora->horario] = $hora->horario;
             }
         }
+
+        if (count($horarios) == 0) {
+            throw new ForbiddenHttpException("Essa data está indisponível para cadastro.");
+        }
+
         return $horarios;
     }
 
-    public function horarioDisponivel($attribute,$params)
+    public function horarioDisponivel($attribute, $params)
     {
         if ($this->isNewRecord) {
             $totalAgentes = Usuario::find()->where(['funcao' => Funcao::find()->where(['nome' => 'Agente de Suporte'])->one()->id])->count();
-            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data",['data' => $this->data])->count();
+            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data", ['data' => $this->data])->count();
 
             if ($count >= $totalAgentes) {
                 $this->addError('hora', 'O horário estava indisponível! Selecionamos um posterior.');
             }
         }
-        
     }
 
-    public function isNotWeekend($attribute,$params) {
+    public function isNotWeekend($attribute, $params)
+    {
         if (date('N', strtotime($this->data)) >= 6) {
             $this->addError('data', 'Não é possível realizar implantações em finais de semana.');
         }

@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?php
-        $JSDayClick = "
+    $JSDayClick = "
         function(date) {
             var myDate = new Date(date);
             if (myDate.getUTCDay() != 6 && myDate.getUTCDay() != 0) {
@@ -25,9 +25,11 @@ $this->params['breadcrumbs'][] = $this->title;
     ?>
 
     <?php
-        $EventClick = "
+    $EventClick = "
         function(eventClickInfo) {
-            window.location.href ='/implantacao/view?id='+eventClickInfo.id;
+            if (eventClickInfo.id != null) {
+                window.location.href ='/implantacao/view?id='+eventClickInfo.id;
+            }
         }"
     ?>
 
@@ -35,18 +37,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'events' => $eventos,
         'clientOptions' => [
             'businessHours' => [
-                'daysOfWeek' => [1,2,3,4,5]
+                'daysOfWeek' => [1, 2, 3, 4, 5]
             ],
             'validRange' => [
                 'start' => date("Y-m-d")
             ],
-            'dayClick'=>new \yii\web\JsExpression($JSDayClick),
-            'eventClick'=>new \yii\web\JsExpression($EventClick)
+            'dayClick' => new \yii\web\JsExpression($JSDayClick),
+            'eventClick' => new \yii\web\JsExpression($EventClick)
         ],
         'options' => [
             'lang' => 'pt',
             'businessHours' => [
-                'daysOfWeek' => [1,2,3,4,5]
+                'daysOfWeek' => [1, 2, 3, 4, 5]
             ]
         ]
     ]);
