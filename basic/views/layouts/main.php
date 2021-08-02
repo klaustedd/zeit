@@ -41,6 +41,7 @@ AppAsset::register($this);
         echo Nav::widget([
             'options' => ['class' => 'navbar-nav navbar-right'],
             'items' => [
+                !Yii::$app->user->isGuest ? ['label' => 'Qualidade', 'url' => ['/teste']] : '',
                 !Yii::$app->user->isGuest ? ['label' => 'Implantações', 'url' => ['/implantacao']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Funções', 'url' => ['/funcao']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Usuários', 'url' => ['/usuario']] : '',
