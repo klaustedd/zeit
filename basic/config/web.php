@@ -11,11 +11,11 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
-    
+
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'fwffsfesfsefsdfweggdfsgrewgsgrewt543',
+            'cookieValidationKey' => 'SUA_KEY_AQUI',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -32,7 +32,15 @@ $config = [
             // send all mails to a file by default. You have to set
             // 'useFileTransport' to false and configure a transport
             // for the mailer to send real emails.
-            'useFileTransport' => true,
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'encryption' => 'ssl',
+                'host' => 'seu_host_aqui',
+                'port' => '465',
+                'username' => 'seu_email_aqui',
+                'password' => 'sua_senha_aqui',
+            ],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -44,14 +52,16 @@ $config = [
             ],
         ],
         'db' => $db,
-        
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-            ],
-        ],
-        
+            'rules'=>[]
+	    // 'baseUrl' => '/zeit',
+        //     'rules' => [
+        //     ],
+        // ],
+
     ],
     'name' => 'Zeit',
     'language' => 'pt-BR',

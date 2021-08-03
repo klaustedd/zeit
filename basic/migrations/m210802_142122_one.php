@@ -12,12 +12,6 @@ class m210802_142122_one extends Migration
      */
     public function safeUp()
     {
-        // Cria a tabela de estado de qualidade
-        $this->createTable('estado_qualidade', [
-            'id' => $this->primaryKey(),
-            'nome' => $this->string()->notNull(),
-            'cor' => $this->string()
-        ]);
 
         // Cria a tabela de qualidade
         $this->createTable('qualidade', [
@@ -95,6 +89,10 @@ class m210802_142122_one extends Migration
             'cor' => '#00ff00',
         ]);
         */
+
+        $this->insert('funcao', [
+            'nome' => 'Agente de Qualidade'
+        ]);
     }
 
     /**

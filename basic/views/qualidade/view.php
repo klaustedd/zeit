@@ -8,7 +8,7 @@ use yii\widgets\DetailView;
 /* @var $model app\models\Implantacao */
 
 $this->title = $model->razao_social;
-$this->params['breadcrumbs'][] = ['label' => 'Implantações', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Qualidade', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>

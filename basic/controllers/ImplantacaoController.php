@@ -2,14 +2,6 @@
 
 namespace app\controllers;
 
-require_once('src/SMTP.php');
-require_once('src/PHPMailer.php');
-require_once('src/Exception.php');
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
 use app\controllers\TesteController;
 use app\models\EstadoImplantacao;
 use app\models\EstadoQualidade;
@@ -20,12 +12,14 @@ use app\models\Qualidade;
 use app\models\ImplantacaoSearch;
 use app\models\Usuario;
 use DateTime;
+use Exception;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\rbac\BaseManager;
 use yii\web\ForbiddenHttpException;
+use yii\web\HttpException;
 
 /**
  * ImplantacaoController implements the CRUD actions for Implantacao model.
@@ -168,60 +162,49 @@ class ImplantacaoController extends Controller
                         $date->modify('+2 day');
                     }
                     $data = $date->format('d/m/Y');
-                    try {
-                        $mail = new PHPMailer(true);
-                        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
-                        $mail->isSMTP();
-                        $mail->Host = 'smtp.office365.com';
-                        $mail->SMTPAuth = true;
-                        $mail->Username  = 'teste@teste.com';
-                        $mail->Password = 'teste';
-                        $mail->Port = 587;
-                        $mail->setFrom('teste@teste.com');
-                        $mail->addAddress($model->email_responsavel);
-                        $mail->isHTML(true);
-                        $mail->Subject = 'teste de email';
-                        $mail->Body = "Implantacao Realizada, entraremos em contato no dia <strong>" . $data .
-                            "</strong>\n";
-                        $mail->AltBody = 'Chegou o email do bagulho la';
 
-                        //if ($mail->send()) {
-                            if ($model->save()) {
-                                $modelQualidade = new Qualidade();
-                                $data = $date->format('Y-m-d');
-                                $modelQualidade->data = $data . ' 00:00:00';
-                                $modelQualidade->hora = $model->data;
-                                $modelQualidade->responsavel = $model->responsavel;
-                                $modelQualidade->telefone = $model->telefone;
-                                $modelQualidade->cadastrante_id = $model->cadastrante_id;
-                                $modelQualidade->atendente_id = $model->atendente_id;
-                                $modelQualidade->email_responsavel = $model->email_responsavel;
-                                $modelQualidade->celular = $model->celular;
-                                $modelQualidade->razao_social = $model->razao_social;
-                                $modelQualidade->cnpj = $model->cnpj;
-                                $modelQualidade->comentario = $model->comentario;
-                                $modelQualidade->vez = 0;
-                                //$modelQualidade->nome = 0;
-                                $modelQualidade->cota_xml = 0;
-                                $modelQualidade->cota_bipagem = 0;
-                                $modelQualidade->cota_ged = 0;
-                                $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
+                    Yii::$app->mailer->compose('@app/mail/layouts/implantacao-realizada', [
+                        "nomeResponsavel" => $model->responsavel,
+                        "dataRetorno" => $data
+                    ])
+                        ->setFrom(Yii::$app->params['senderEmail'])
+                        ->setTo($model->email_responsavel)
+                        ->setSubject("Implantação Realizada!")
+                        ->send();
 
-                                var_dump('<pre>');
-                                /*var_dump($modelQualidade);
+                    //if ($mail->send()) {
+                    if ($model->save()) {
+                        $modelQualidade = new Qualidade();
+                        $data = $date->format('Y-m-d');
+                        $modelQualidade->data = $data . ' 00:00:00';
+                        $modelQualidade->hora = $model->data;
+                        $modelQualidade->responsavel = $model->responsavel;
+                        $modelQualidade->telefone = $model->telefone;
+                        $modelQualidade->cadastrante_id = $model->cadastrante_id;
+                        $modelQualidade->atendente_id = $model->atendente_id;
+                        $modelQualidade->email_responsavel = $model->email_responsavel;
+                        $modelQualidade->celular = $model->celular;
+                        $modelQualidade->razao_social = $model->razao_social;
+                        $modelQualidade->cnpj = $model->cnpj;
+                        $modelQualidade->comentario = $model->comentario;
+                        $modelQualidade->vez = 0;
+                        //$modelQualidade->nome = 0;
+                        $modelQualidade->cota_xml = 0;
+                        $modelQualidade->cota_bipagem = 0;
+                        $modelQualidade->cota_ged = 0;
+                        $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
+
+                        // var_dump('<pre>');
+                        /*var_dump($modelQualidade);
                                 var_dump('<br><br>');
                                 var_dump($modelQualidade->validate());*/
-                                var_dump('</pre>');
+                        // var_dump('</pre>');
 
-                                if ($modelQualidade->save()) {
-                                    return $this->redirect(['view', 'id' => $model->id]);
-                                }
-                            }
-                        //}
-                    } catch (Exception $e) {
-                        var_dump("teste");
-                        var_dump($mail->ErrorInfo);
+                        if ($modelQualidade->save()) {
+                            return $this->redirect(['view', 'id' => $model->id]);
+                        }
                     }
+                    //}
                 } else {
                     if ($model->save()) {
                         return $this->redirect(['view', 'id' => $model->id]);

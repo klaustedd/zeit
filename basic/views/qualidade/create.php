@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $model app\models\Implantacao */
 
 $this->title = 'Cadastrar Implantação ';
-$this->params['breadcrumbs'][] = ['label' => 'Teste', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Qualidade', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="teste-create">

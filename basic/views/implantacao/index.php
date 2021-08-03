@@ -19,7 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
         function(date) {
             var myDate = new Date(date);
             if (myDate.getUTCDay() != 6 && myDate.getUTCDay() != 0) {
-                window.location.href ='/implantacao/create?data='+date.format();
+                window.location.href ='/zeit/implantacao/create?data='+date.format();
             }
         }"
     ?>
@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
     $EventClick = "
         function(eventClickInfo) {
             if (eventClickInfo.id != null) {
-                window.location.href ='/implantacao/view?id='+eventClickInfo.id;
+                window.location.href ='/zeit/implantacao/view?id='+eventClickInfo.id;
             }
         }"
     ?>

@@ -2,10 +2,6 @@
 
 namespace app\controllers;
 
-require_once('src/SMTP.php');
-require_once('src/PHPMailer.php');
-require_once('src/Exception.php');
-
 use app\models\EstadoImplantacao;
 use app\models\EstadoQualidade;
 use app\models\HorarioIndisponivel;
@@ -14,21 +10,20 @@ use app\models\Qualidade;
 use app\models\ImplantacaoSearch;
 use app\models\Usuario;
 use DateTime;
+use Exception;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\rbac\BaseManager;
 use yii\web\ForbiddenHttpException;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
 use yii\base\Model;
+use yii\web\HttpException;
 
 /**
  * ImplantacaoController implements the CRUD actions for Implantacao model.
  */
-class TesteController extends Controller
+class QualidadeController extends Controller
 {
     /**
      * {@inheritdoc}
@@ -43,6 +38,9 @@ class TesteController extends Controller
                         'actions' => ['index', 'view', 'update', 'delete', 'create'],
                         'allow' => true,
                         'roles' => ['@'],
+                        'matchCallback' => function ($rule, $action) {
+                            return Usuario::isRole(['Administrador'], Yii::$app->user->identity) || Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity);
+                        }
                     ],
                 ],
             ],
@@ -216,22 +214,14 @@ class TesteController extends Controller
                     $data = $date->format('d/m/Y');
 
                     try {
-                        $mail = new PHPMailer(true);
-                        //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
-                        $mail->isSMTP();
-                        $mail->Host = 'smtp.office365.com';
-                        $mail->SMTPAuth = true;
-                        $mail->Username  = 'teste@teste.com';
-                        $mail->Password = 'teste';
-                        $mail->Port = 587;
-                        $mail->setFrom('teste@teste.com');
-                        $mail->addAddress($model->email_responsavel);
-                        $mail->isHTML(true);
-                        $mail->Subject = 'teste de email';
-                        $mail->Body = "Implantacao Realizada, entraremos em contato no dia <strong>" . $data .
-                            "</strong>\n";
-                        $mail->AltBody = 'Chegou o email do bagulho la';
-
+                        Yii::$app->mailer->compose('@app/mail/layouts/acompanhamento', [
+                            "nomeResponsavel" => $model->responsavel,
+                            "dataRetorno" => $data
+                        ])
+                            ->setFrom(Yii::$app->params['senderEmail'])
+                            ->setTo($model->email_responsavel)
+                            ->setSubject("Nossa próxima reunião")
+                            ->send();
                         //if ($mail->send()) {
                         if ($model->save()) {
                             $modelQualidade = new Qualidade();
@@ -265,8 +255,7 @@ class TesteController extends Controller
                         }
                         //}
                     } catch (Exception $e) {
-                        var_dump("teste");
-                        var_dump($mail->ErrorInfo);
+                        throw new HttpException($e);
                     }
                 } else if ("Reagendada" == EstadoImplantacao::allAsMap()[$model->estado_implantacao_id]) {
 

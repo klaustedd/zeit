@@ -148,7 +148,7 @@ class m210601_201822_zero extends Migration
             'nome' => 'Suporte',
             'email' => 'suporte@tedd.com.br',
             'senha' => Yii::$app->getSecurity()->generatePasswordHash('suporte123'),
-            'funcao' => 1
+            'funcao' => 2
         ]);
 
         // Cria um status de Pendente 
