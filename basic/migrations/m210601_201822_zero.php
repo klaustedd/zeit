@@ -28,13 +28,15 @@ class m210601_201822_zero extends Migration
         ]);
 
         // Adiciona uma chave estrangeira ao usuário com a funcao
-        $this->addForeignKey('cargo_in_usuario',
-        'usuario',
-        'funcao',
-        'funcao',
-        'id',
-        'NO ACTION',
-        'NO ACTION');
+        $this->addForeignKey(
+            'cargo_in_usuario',
+            'usuario',
+            'funcao',
+            'funcao',
+            'id',
+            'NO ACTION',
+            'NO ACTION'
+        );
 
         // Cria a tabela de estado de implantação
         $this->createTable('estado_implantacao', [
@@ -77,31 +79,41 @@ class m210601_201822_zero extends Migration
         ]);
 
         // Adiciona uma chave estrangeira do cadastrante
-        $this->addForeignKey('fk_agendamento_usuario',
-        'implantacao',
-        'cadastrante_id',
-        'usuario',
-        'id',
-        'NO ACTION',
-        'NO ACTION');
+        $this->addForeignKey(
+            'fk_agendamento_usuario',
+            'implantacao',
+            'cadastrante_id',
+            'usuario',
+            'id',
+            'NO ACTION',
+            'NO ACTION'
+        );
 
         // Adiciona uma chave estrangeira do atendente
-        $this->addForeignKey('fk_agendamento_usuario1',
-        'implantacao',
-        'atendente_id',
-        'usuario',
-        'id',
-        'NO ACTION',
-        'NO ACTION');
+        $this->addForeignKey(
+            'fk_agendamento_usuario1',
+            'implantacao',
+            'atendente_id',
+            'usuario',
+            'id',
+            'NO ACTION',
+            'NO ACTION'
+        );
 
         // Adiciona uma chave estrangeira do cadastrante
-        $this->addForeignKey('fk_implantacao_estado_implantacao1',
-        'implantacao',
-        'estado_implantacao_id',
-        'estado_implantacao',
-        'id',
-        'NO ACTION',
-        'NO ACTION');
+        $this->addForeignKey(
+            'fk_implantacao_estado_implantacao1',
+            'implantacao',
+            'estado_implantacao_id',
+            'estado_implantacao',
+            'id',
+            'NO ACTION',
+            'NO ACTION'
+        );
+
+        /*
+        
+        */
 
         // Cria a tabela de implantacao
         $this->createTable('implantacao_indisponivel', [
@@ -110,7 +122,6 @@ class m210601_201822_zero extends Migration
             'data' => $this->datetime()->notNull(),
             'operadores' => $this->integer()->notNull()
         ]);
-
 
         // Cria as funções padrão
         $this->insert('funcao', [
@@ -132,6 +143,39 @@ class m210601_201822_zero extends Migration
             'funcao' => 1
         ]);
 
+        // Cria um usuário administrador por padrão
+        $this->insert('usuario', [
+            'nome' => 'Suporte',
+            'email' => 'suporte@tedd.com.br',
+            'senha' => Yii::$app->getSecurity()->generatePasswordHash('suporte123'),
+            'funcao' => 1
+        ]);
+
+        // Cria um status de Pendente 
+        $this->insert('estado_implantacao', [
+            'nome' => 'Pendente',
+            'cor' => '#0000ff',
+        ]);
+
+        // Cria um status de Realizada 
+        $this->insert('estado_implantacao', [
+            'nome' => 'Realizada',
+            'cor' => '#00ff00',
+        ]);
+
+        // Cria um status de Pendente 
+        $this->insert('estado_implantacao', [
+            'nome' => 'Pendente',
+            'cor' => '#0000ff',
+        ]);
+
+        // Cria um Horario padrão as 08:00:00
+        $this->insert(
+            'horario_disponivel',
+            [
+                'horario' => '08:00:00'
+            ]
+        );
     }
 
     /**

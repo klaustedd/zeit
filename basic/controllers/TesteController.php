@@ -6,16 +6,10 @@ require_once('src/SMTP.php');
 require_once('src/PHPMailer.php');
 require_once('src/Exception.php');
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
-use app\controllers\TesteController;
 use app\models\EstadoImplantacao;
 use app\models\EstadoQualidade;
 use app\models\HorarioIndisponivel;
 use Yii;
-use app\models\Implantacao;
 use app\models\Qualidade;
 use app\models\ImplantacaoSearch;
 use app\models\Usuario;
@@ -26,11 +20,15 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\rbac\BaseManager;
 use yii\web\ForbiddenHttpException;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+use yii\base\Model;
 
 /**
  * ImplantacaoController implements the CRUD actions for Implantacao model.
  */
-class ImplantacaoController extends Controller
+class TesteController extends Controller
 {
     /**
      * {@inheritdoc}
@@ -64,7 +62,7 @@ class ImplantacaoController extends Controller
     public function actionIndex()
     {
         $eventos = [];
-        $implantacoes = Implantacao::find()->all();
+        $implantacoes = Qualidade::find()->all();
 
         foreach ($implantacoes as $implantacao) {
             $evento = new \yii2fullcalendar\models\Event();
@@ -111,14 +109,24 @@ class ImplantacaoController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Implantacao();
+        $model = new Qualidade();
 
         if ($model->load(Yii::$app->request->post())) {
 
             $model->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
             $model->data = $model->data . ' ' . $model->hora;
 
+            echo '<br><br><br><br><pre>';
+            //var_dump($model);
+            var_dump($model->vez);
+            echo '</pre>';
+
             if ($model->save()) {
+
+                echo '<pre>';
+                //var_dump($model);
+                echo '</pre>';
+
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         }
@@ -128,14 +136,14 @@ class ImplantacaoController extends Controller
         $model->cadastrante_id = Yii::$app->user->identity->id;
         $model->data = $data;
 
-        $horarios = Implantacao::getHorasDisponiveis($data);
-
+        $horarios = Qualidade::getHorasDisponiveis($data);
         return $this->render('create', [
             'model' => $model,
             'estadoImplantacao' => EstadoImplantacao::allAsMap(),
             'data' => $data,
             'cadastrante' => [Yii::$app->user->identity->id => Yii::$app->user->identity->nome],
             'horarios' => $horarios
+
         ]);
     }
 
@@ -150,24 +158,63 @@ class ImplantacaoController extends Controller
     {
         $model = $this->findModel($id);
         $model->hora = $model->data;
-        //var_dump('<br><br><br><br><br><br><br>');
+
+        $vez = 0;
 
         if (
             !Usuario::isRole(['Vendedor'], Yii::$app->user->identity) ||
             (Usuario::isRole(['Vendedor'], Yii::$app->user->identity) && $model->cadastrante_id == Yii::$app->user->identity->id)
         ) {
             if ($model->load(Yii::$app->request->post())) {
+
+                var_dump("<br><br><br><br>");
+
                 if ("Realizada" == EstadoImplantacao::allAsMap()[$model->estado_implantacao_id]) {
-                    $date = new DateTime($model->data);
-                    $date->modify('+1 day');
-                    $data = $date->format('w');
-                    if ($data == "7") {
-                        $date->modify('+1 day');
+                    //$model->data = '2020-06-29';
+
+                    if ($model->data == '') {
+                        var_dump('<pre>');
+                        var_dump($model->oldAttributes['data']);
+                        $model->data = $model->oldAttributes['data'];
+                        var_dump('</pre>');
+                        var_dump($model->data);
                     }
-                    if ($data == "6") {
+
+                    $date = new DateTime($model->data);
+                    var_dump($date->format('d/m/Y w') . '<br>');
+                    if ($model->vez == 0) {
+                        $date->modify('+7 day');
+                        $vez = 1;
+                    } else if ($model->vez == 1) {
+                        $date->modify('+8 day');
+                        $vez = 2;
+                    } else if ($model->vez == 2) {
+                        $date->modify('+15 day');
+                        $vez = 3;
+                    } else if ($model->vez == 3) {
+                        $date->modify('+30 day');
+                        $vez = 4;
+                    } else if ($model->vez == 4) {
+                        $date->modify('+30 day');
+                        $vez = 5;
+                    } else {
+                        if ($model->save()) {
+                            return $this->redirect(['view', 'id' => $model->id]);
+                        }
+                    }
+
+                    $data = $date->format('w');
+                    if ($data == "0") {
+                        $date->modify('+1 day');
+                    } else if ($data == "6") {
                         $date->modify('+2 day');
                     }
+                    $data = $date->format('d/m/Y w');
+
+                    var_dump($data);
+
                     $data = $date->format('d/m/Y');
+
                     try {
                         $mail = new PHPMailer(true);
                         //$mail->SMTPDebug = SMTP::DEBUG_SERVER;
@@ -186,56 +233,113 @@ class ImplantacaoController extends Controller
                         $mail->AltBody = 'Chegou o email do bagulho la';
 
                         //if ($mail->send()) {
-                            if ($model->save()) {
-                                $modelQualidade = new Qualidade();
-                                $data = $date->format('Y-m-d');
-                                $modelQualidade->data = $data . ' 00:00:00';
-                                $modelQualidade->hora = $model->data;
-                                $modelQualidade->responsavel = $model->responsavel;
-                                $modelQualidade->telefone = $model->telefone;
-                                $modelQualidade->cadastrante_id = $model->cadastrante_id;
-                                $modelQualidade->atendente_id = $model->atendente_id;
-                                $modelQualidade->email_responsavel = $model->email_responsavel;
-                                $modelQualidade->celular = $model->celular;
-                                $modelQualidade->razao_social = $model->razao_social;
-                                $modelQualidade->cnpj = $model->cnpj;
-                                $modelQualidade->comentario = $model->comentario;
-                                $modelQualidade->vez = 0;
-                                //$modelQualidade->nome = 0;
-                                $modelQualidade->cota_xml = 0;
-                                $modelQualidade->cota_bipagem = 0;
-                                $modelQualidade->cota_ged = 0;
-                                $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
+                        if ($model->save()) {
+                            $modelQualidade = new Qualidade();
+                            $data = $date->format('Y-m-d');
+                            $modelQualidade->data = $data . ' 00:00:00';
+                            $modelQualidade->hora = $model->data;
+                            $modelQualidade->responsavel = $model->responsavel;
+                            $modelQualidade->telefone = $model->telefone;
+                            $modelQualidade->cadastrante_id = $model->cadastrante_id;
+                            $modelQualidade->atendente_id = $model->atendente_id;
+                            $modelQualidade->email_responsavel = $model->email_responsavel;
+                            $modelQualidade->celular = $model->celular;
+                            $modelQualidade->razao_social = $model->razao_social;
+                            $modelQualidade->cnpj = $model->cnpj;
+                            $modelQualidade->comentario = $model->comentario;
+                            $modelQualidade->vez = $vez;
+                            $modelQualidade->cota_xml = 0;
+                            $modelQualidade->cota_bipagem = 0;
+                            $modelQualidade->cota_ged = 0;
+                            $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
 
-                                var_dump('<pre>');
-                                /*var_dump($modelQualidade);
-                                var_dump('<br><br>');
-                                var_dump($modelQualidade->validate());*/
-                                var_dump('</pre>');
+                            var_dump('<pre>');
+                            //var_dump($modelQualidade);
+                            //var_dump('<br><br>');
+                            var_dump($modelQualidade->validate());
+                            var_dump('</pre>');
 
-                                if ($modelQualidade->save()) {
-                                    return $this->redirect(['view', 'id' => $model->id]);
-                                }
+                            if ($modelQualidade->save()) {
+                                return $this->redirect(['view', 'id' => $model->id]);
                             }
+                        }
                         //}
                     } catch (Exception $e) {
                         var_dump("teste");
                         var_dump($mail->ErrorInfo);
                     }
+                } else if ("Reagendada" == EstadoImplantacao::allAsMap()[$model->estado_implantacao_id]) {
+
+                    $model->data = $model->data . ' 00:00:00';
+
+                    $dataReagendada = $model->data;
+
+                    var_dump('<pre>');
+                    var_dump($model->oldAttributes['data']);
+                    $model->data = $model->oldAttributes['data'];
+                    var_dump('</pre>');
+                    var_dump('' . $model->data . '<br>');
+                    var_dump('' . $dataReagendada);
+
+                    if ($model->save()) {
+                        $modelQualidade = new Qualidade();
+
+                        $modelQualidade->data = $dataReagendada;
+                        $modelQualidade->hora = $model->data;
+                        $modelQualidade->responsavel = $model->responsavel;
+                        $modelQualidade->telefone = $model->telefone;
+                        $modelQualidade->cadastrante_id = $model->cadastrante_id;
+                        $modelQualidade->atendente_id = $model->atendente_id;
+                        $modelQualidade->email_responsavel = $model->email_responsavel;
+                        $modelQualidade->celular = $model->celular;
+                        $modelQualidade->razao_social = $model->razao_social;
+                        $modelQualidade->cnpj = $model->cnpj;
+                        $modelQualidade->comentario = $model->comentario;
+                        $modelQualidade->vez = $vez;
+                        $modelQualidade->cota_xml = 0;
+                        $modelQualidade->cota_bipagem = 0;
+                        $modelQualidade->cota_ged = 0;
+                        $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
+
+                        var_dump($modelQualidade->validate());
+
+
+                        if ($modelQualidade->save()) {
+                            return $this->redirect(['view', 'id' => $model->id]);
+                        }
+                    }
+
+                    /*if ($model->save()) {
+                        return $this->redirect(['view', 'id' => $model->id]);
+                    }*/
+
+
+                    //if ($model->save()) {
+                    //return $this->redirect(['view', 'id' => $model->id]);
+                    //}
                 } else {
+
+                    if ($model->data == '') {
+                        var_dump('<pre>');
+                        var_dump($model->oldAttributes['data']);
+                        $model->data = $model->oldAttributes['data'];
+                        var_dump('</pre>');
+                        var_dump($model->data);
+                    }
+
                     if ($model->save()) {
                         return $this->redirect(['view', 'id' => $model->id]);
                     }
                 }
+
                 /*if ($model->save()) {
-                    '
                     return $this->redirect(['view', 'id' => $model->id]);
                 }*/
             }
 
             return $this->render('update', [
                 'model' => $model,
-                'estadoImplantacao' => EstadoImplantacao::allAsMap(),
+                'estadoQualidade' => EstadoImplantacao::allAsMap(),
                 'atendentes' => Usuario::getAllSuporteAsMap()
             ]);
         } else {
@@ -274,8 +378,7 @@ class ImplantacaoController extends Controller
      */
     protected function findModel($id)
     {
-
-        if (($model = Implantacao::findOne($id)) !== null) {
+        if (($model = Qualidade::findOne($id)) !== null) {
             return $model;
         }
 

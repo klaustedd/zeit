@@ -7,10 +7,10 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\ImplantacaoSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Implantações';
+$this->title = 'Qualidade';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="implantacao-index">
+<div class="qualidade-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -19,7 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
         function(date) {
             var myDate = new Date(date);
             if (myDate.getUTCDay() != 6 && myDate.getUTCDay() != 0) {
-                window.location.href ='/implantacao/create?data='+date.format();
+                window.location.href ='/teste/create?data='+date.format();
             }
         }"
     ?>
@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
     $EventClick = "
         function(eventClickInfo) {
             if (eventClickInfo.id != null) {
-                window.location.href ='/implantacao/view?id='+eventClickInfo.id;
+                window.location.href ='/teste/view?id='+eventClickInfo.id;
             }
         }"
     ?>
@@ -40,7 +40,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'daysOfWeek' => [1, 2, 3, 4, 5]
             ],
             /*'validRange' => [
-                'start' => date("Y-m-d")
+                'start' => '2000-01-01'//date("Y-m-d")
             ],*/
             'dayClick' => new \yii\web\JsExpression($JSDayClick),
             'eventClick' => new \yii\web\JsExpression($EventClick)
