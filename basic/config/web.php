@@ -15,7 +15,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'SUA_KEY_AQUI',
+            'cookieValidationKey' => 'dcd6521cb11ad2d3b01cfefa50a7c987',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -56,11 +56,9 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules'=>[]
-	    // 'baseUrl' => '/zeit',
-        //     'rules' => [
-        //     ],
-        // ],
+            // 'baseUrl' => '/zeit',
+            'rules' => [],
+        ],
 
     ],
     'name' => 'Zeit',
