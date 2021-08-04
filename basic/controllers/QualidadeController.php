@@ -39,7 +39,9 @@ class QualidadeController extends Controller
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function ($rule, $action) {
-                            return Usuario::isRole(['Administrador'], Yii::$app->user->identity) || Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity);
+                            return Usuario::isRole(['Administrador'], Yii::$app->user->identity) 
+                            || Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity)
+                            || Usuario::isRole(['Agente de Qualidade'], Yii::$app->user->identity);
                         }
                     ],
                 ],
