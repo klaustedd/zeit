@@ -50,7 +50,6 @@ class Qualidade extends \yii\db\ActiveRecord
             [[/*'data',*/ 'responsavel', 'telefone', 'cadastrante_id', 'email_responsavel', 'razao_social', 'estado_implantacao_id', 'hora', 'cota_xml'], 'required'],
             [['data'], 'date', 'format' => 'php:Y-m-d H:i:s'],
             [['data'], 'isNotWeekend'],
-            [['data'], 'horarioDisponivel'],
             [['cadastrante_id', 'atendente_id', 'vez', 'cota_bipagem', 'cota_ged', 'cota_xml'], 'integer'],
             [['comentario'], 'string'],
             [['responsavel', 'razao_social'], 'string', 'max' => 256],
@@ -128,33 +127,11 @@ class Qualidade extends \yii\db\ActiveRecord
         // Busca os horários possíveis
         $horariosPossiveis = HorarioDisponivel::find()->all();
 
-        // Busca os agentes
-        $totalAgentes = Usuario::find()->where(['funcao' => Funcao::find()->where(['nome' => 'Agente de Suporte'])->one()->id])->count();
-
         $horarios = [];
 
         foreach ($horariosPossiveis as $hora) {
 
-            // Busca os horarios já marcados
-            $dataHora = $data . ' ' . $hora->horario;
-            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data", ['data' => $dataHora])->count();
-
-            // Verifica a disponibilidade do horário sabendo que
-            // é indisponível se entiver dentro e algum intervalo
-            // de indisponibilidadea
-            $isIndisponivel = HorarioIndisponivel::verificarSeHoraEstaIndisponivel($dataHora);
-            if ($isIndisponivel) {
-                continue;
-            }
-
-            // Verifica se haverão agentes disponíveis
-            if ($count < $totalAgentes) {
-                $horarios[$hora->horario] = $hora->horario;
-            }
-        }
-
-        if (count($horarios) == 0) {
-            throw new ForbiddenHttpException("Essa data está indisponível para cadastro.");
+            $horarios[$hora->horario] = $hora->horario;
         }
 
         return $horarios;
