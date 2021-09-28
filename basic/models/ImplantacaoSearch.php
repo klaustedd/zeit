@@ -40,7 +40,56 @@ class ImplantacaoSearch extends Implantacao
      */
     public function search($params)
     {
-        $query = Implantacao::find();
+        $query = Implantacao::find()->orderBy('data desc')->where(['<', 'data', date('Y-m-d')]);
+
+        // add conditions that should always apply here
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params);
+
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to return any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
+
+        // grid filtering conditions
+        $query->andFilterWhere([
+            'id' => $this->id,
+            'data' => $this->data,
+            'cadastrante_id' => $this->cadastrante_id,
+            'atendente_id' => $this->atendente_id,
+            'estado_implantacao_id' => $this->estado_implantacao_id,
+        ]);
+
+        $query->andFilterWhere(['like', 'responsavel', $this->responsavel])
+            ->andFilterWhere(['like', 'telefone', $this->telefone])
+            ->andFilterWhere(['like', 'email_responsavel', $this->email_responsavel])
+            ->andFilterWhere(['like', 'celular', $this->celular])
+            ->andFilterWhere(['like', 'razao_social', $this->razao_social])
+            ->andFilterWhere(['like', 'cnpj', $this->cnpj])
+            ->andFilterWhere(['like', 'comentario', $this->comentario]);
+
+        return $dataProvider;
+    }
+
+    /**
+     * Creates data provider instance with search query applied
+     *
+     * @param array $params
+     *
+     * @return ActiveDataProvider
+     */
+    public function searchPerdido($params)
+    {
+
+        $estadoRequerido = EstadoImplantacao::find()->where(['nome' => 'Realizada'])->one();
+        $estadoReagendada = EstadoImplantacao::find()->where(['nome' => 'Reagendada'])->one();
+
+        $query = Implantacao::find()->orderBy('data desc')->where(['<', 'data', date('Y-m-d')])->andwhere(['<>', 'estado_implantacao_id', $estadoRequerido->id])->andwhere(['<>', 'estado_implantacao_id', $estadoReagendada->id]);
 
         // add conditions that should always apply here
 

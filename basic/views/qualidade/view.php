@@ -17,8 +17,10 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?php if (!Usuario::isRole(['Vendedor'], Yii::$app->user->identity) ||
-          (Usuario::isRole(['Vendedor'], Yii::$app->user->identity) && $model->cadastrante_id == Yii::$app->user->identity->id)) {?>
+        <?php if (
+            !Usuario::isRole(['Vendedor'], Yii::$app->user->identity) ||
+            (Usuario::isRole(['Vendedor'], Yii::$app->user->identity) && $model->cadastrante_id == Yii::$app->user->identity->id)
+        ) { ?>
             <?= Html::a('Atualizar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
             <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
                 'class' => 'btn btn-danger',
@@ -27,13 +29,15 @@ $this->params['breadcrumbs'][] = $this->title;
                     'method' => 'post',
                 ],
             ]) ?>
-        <?php }?>
+        <?php } ?>
     </p>
 
     <?= DetailView::widget([
         'model' => $model,
+        //'vez',
         'attributes' => [
             'id',
+            'vez',
             'data',
             'responsavel',
             'telefone',

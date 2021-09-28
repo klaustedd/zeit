@@ -1,6 +1,5 @@
 <?php
 
-use app\models\Usuario;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
@@ -16,40 +15,36 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php
-    $JSDayClick = "
-        function(date) {
-            var myDate = new Date(date);
-            if (myDate.getUTCDay() != 6 && myDate.getUTCDay() != 0) {
-                window.location.href ='" . Url::base() . "/implantacao/create?data='+date.format();
+    <script>
+        function caracteres(numero, quantidade) {
+            if (("" + numero).length == 1) {
+                return "0" + numero;
+            } else {
+                return numero;
             }
-        }"
-    ?>
-
+        }
+    </script>
     <?php
     $EventClick = "
         function(eventClickInfo) {
             if (eventClickInfo.id != null) {
-                window.location.href ='" . Url::base() . "/implantacao/view?id='+eventClickInfo.id;
+                var a = new Date(eventClickInfo.start);
+                
+                window.location.href ='" . Url::base() . "/implantacao/reagenda?id='+eventClickInfo.id+" . "'&data='+(a.getFullYear())+'-'+caracteres((a.getMonth()+1),2)+'-'+(a.getDate())+' '+caracteres((a.getHours()+3),2)+':00:00';
             }
         }"
     ?>
 
-    <!--?php if (
-            Usuario::isRole(['Vendedor'], Yii::$app->user->identity) 
-        ) {
-            $eventos = [];
-        }
-            ?-->
-        
-    <?= 
-    yii2fullcalendar\yii2fullcalendar::widget([
+    <?= yii2fullcalendar\yii2fullcalendar::widget([
         'events' => $eventos,
         'clientOptions' => [
             'businessHours' => [
                 'daysOfWeek' => [1, 2, 3, 4, 5]
             ],
-            'dayClick' => new \yii\web\JsExpression($JSDayClick),
+            /*'validRange' => [
+                'start' => date("Y-m-d")
+            ],*/
+            //'dayClick' => new \yii\web\JsExpression($JSDayClick),
             'eventClick' => new \yii\web\JsExpression($EventClick)
         ],
         'options' => [
@@ -60,7 +55,3 @@ $this->params['breadcrumbs'][] = $this->title;
         ]
     ]);
     ?>
-    
-
-
-</div>

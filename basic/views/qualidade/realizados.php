@@ -4,13 +4,13 @@ use yii\helpers\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
-/* @var $searchModel app\models\UsuarioSearch */
+/* @var $searchModel app\models\ImplantacaoSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Usuários';
+$this->title = 'Realizados';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="usuario-index">
+<div class="implantacao-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -26,18 +26,9 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
-            'nome',
-            'email:email',
-            [
-                'label' => 'funcao',
-                'value' => function ($model) {
-                    return $model->funcaoModel->nome;
-                }
-            ],
-
-
+            //'id',
+            'razao_social',
+            'cnpj',
             ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>

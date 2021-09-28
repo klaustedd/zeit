@@ -47,7 +47,7 @@ class Implantacao extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['data', 'responsavel', 'telefone', 'cadastrante_id', 'email_responsavel', 'razao_social', 'estado_implantacao_id', 'hora', 'cota_xml'], 'required'],
+            [[/*'data',*/'responsavel', 'telefone', 'cadastrante_id', 'email_responsavel', 'razao_social', 'estado_implantacao_id', 'hora', 'cota_xml'], 'required'],
             [['data'], 'date', 'format' => 'php:Y-m-d H:i:s'],
             [['data'], 'isNotWeekend'],
             [['data'], 'horarioDisponivel'],
@@ -56,7 +56,8 @@ class Implantacao extends \yii\db\ActiveRecord
             [['responsavel', 'razao_social'], 'string', 'max' => 256],
             [['telefone', 'celular'], 'string', 'max' => 11],
             [['email_responsavel'], 'string', 'max' => 256],
-            [['cnpj'], 'string', 'max' => 14],
+            //[['cnpj'], 'string', 'max' => 14],
+            [['cnpj'], 'isCnpj'],
             [['cadastrante_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::className(), 'targetAttribute' => ['cadastrante_id' => 'id']],
             [['atendente_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::className(), 'targetAttribute' => ['atendente_id' => 'id']],
             [['estado_implantacao_id'], 'exist', 'skipOnError' => true, 'targetClass' => EstadoImplantacao::className(), 'targetAttribute' => ['estado_implantacao_id' => 'id']],
@@ -163,7 +164,7 @@ class Implantacao extends \yii\db\ActiveRecord
     {
         if ($this->isNewRecord) {
             $totalAgentes = Usuario::find()->where(['funcao' => Funcao::find()->where(['nome' => 'Agente de Suporte'])->one()->id])->count();
-            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data", ['data' => $this->data])->count();
+            $count = Implantacao::findBySql("SELECT * FROM implantacao WHERE data = :data AND estado_implantacao_id = :status ", ['data' => $this->data, 'status' => EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id])->count();
 
             if ($count >= $totalAgentes) {
                 $this->addError('hora', 'O horário estava indisponível! Selecionamos um posterior.');
@@ -176,5 +177,22 @@ class Implantacao extends \yii\db\ActiveRecord
         if (date('N', strtotime($this->data)) >= 6) {
             $this->addError('data', 'Não é possível realizar implantações em finais de semana.');
         }
+    }
+
+    public function isCnpj($attribute, $params)
+    {
+        if (!preg_match("(\d{14})", $this->cnpj) && !preg_match("/^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$/", $this->cnpj)) {
+            $this->addError('cnpj', 'Formato de CNPJ inválido.');
+        }
+    }
+
+    public function beforeValidate()
+    {
+        $this->cnpj = preg_replace("(\D)", "", $this->cnpj);
+
+        if (parent::beforeValidate()) {
+            return true;
+        }
+        return false;
     }
 }

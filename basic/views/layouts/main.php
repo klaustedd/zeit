@@ -41,13 +41,15 @@ AppAsset::register($this);
         echo Nav::widget([
             'options' => ['class' => 'navbar-nav navbar-right'],
             'items' => [
-                Usuario::isRole(['Administrador'], Yii::$app->user->identity) 
-                ||  Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity)
-                ||  Usuario::isRole(['Agente de Qualidade'], Yii::$app->user->identity) ? ['label' => 'Qualidade', 'url' => ['/qualidade']] : '',
+                Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Busca', 'url' => ['/implantacao/realizados']] : '',
+                Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Perdidos', 'url' => ['/implantacao/nao-realizados']] : '',
+                Usuario::isRole(['Administrador'], Yii::$app->user->identity)
+                    ||  Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity)
+                    ||  Usuario::isRole(['Agente de Qualidade'], Yii::$app->user->identity) ? ['label' => 'Qualidade', 'url' => ['/qualidade']] : '',
                 !Yii::$app->user->isGuest ? ['label' => 'Implantações', 'url' => ['/implantacao']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Funções', 'url' => ['/funcao']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Usuários', 'url' => ['/usuario']] : '',
-                Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Estados de Implantação', 'url' => ['/estado-implantacao']] : '',
+                Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Status', 'url' => ['/estado-implantacao']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Horários Disponíveis', 'url' => ['/horario-disponivel']] : '',
                 Usuario::isRole(['Administrador'], Yii::$app->user->identity) ? ['label' => 'Horários Indisponíveis', 'url' => ['/horario-indisponivel']] : '',
                 Yii::$app->user->isGuest ? (['label' => 'Login', 'url' => ['/site/login']]) : ('<li>'
