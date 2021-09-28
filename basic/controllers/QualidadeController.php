@@ -8,6 +8,7 @@ use app\models\HorarioIndisponivel;
 use Yii;
 use app\models\Qualidade;
 use app\models\ImplantacaoSearch;
+use app\models\QualidadeSearch;
 use app\models\Usuario;
 use DateTime;
 use Exception;
@@ -18,6 +19,7 @@ use yii\filters\AccessControl;
 use yii\rbac\BaseManager;
 use yii\web\ForbiddenHttpException;
 use yii\base\Model;
+use yii\data\ActiveDataProvider;
 use yii\web\HttpException;
 
 /**
@@ -35,13 +37,13 @@ class QualidadeController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'update', 'delete', 'create'],
+                        'actions' => ['index', 'view', 'update', 'delete', 'create', 'realizados'],
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function ($rule, $action) {
-                            return Usuario::isRole(['Administrador'], Yii::$app->user->identity) 
-                            || Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity)
-                            || Usuario::isRole(['Agente de Qualidade'], Yii::$app->user->identity);
+                            return Usuario::isRole(['Administrador'], Yii::$app->user->identity)
+                                || Usuario::isRole(['Agente de Suporte'], Yii::$app->user->identity)
+                                || Usuario::isRole(['Agente de Qualidade'], Yii::$app->user->identity);
                         }
                     ],
                 ],
@@ -62,14 +64,16 @@ class QualidadeController extends Controller
     public function actionIndex()
     {
         $eventos = [];
-        $implantacoes = Qualidade::find()->all();
+        $qualidades = Qualidade::find()->orderBy('vez ASC')->all();
 
-        foreach ($implantacoes as $implantacao) {
+        foreach ($qualidades as $qualidade) {
+            $vez = new DateTime($qualidade->data);
+            $vez = $vez->format("Y-m-d");
             $evento = new \yii2fullcalendar\models\Event();
-            $evento->id = $implantacao->id;
-            $evento->title = $implantacao->razao_social;
-            $evento->start = $implantacao->data;
-            $evento->backgroundColor = $implantacao->estadoImplantacao->cor;
+            $evento->id = $qualidade->id;
+            $evento->title = $qualidade->razao_social;
+            $evento->start = $vez . " " . "0" . $qualidade->vez . ":00:00";
+            $evento->backgroundColor = $qualidade->estadoImplantacao->cor;
             $eventos[] = $evento;
         }
 
@@ -88,6 +92,7 @@ class QualidadeController extends Controller
             'eventos' => $eventos,
         ]);
     }
+
 
     /**
      * Displays a single Implantacao model.
@@ -117,14 +122,14 @@ class QualidadeController extends Controller
             $model->data = $model->data . ' ' . $model->hora;
 
             echo '<br><br><br><br><pre>';
-            //var_dump($model);
-            var_dump($model->vez);
+            ////var_dump($model);
+            //var_dump($model->vez);
             echo '</pre>';
 
             if ($model->save()) {
 
                 echo '<pre>';
-                //var_dump($model);
+                ////var_dump($model);
                 echo '</pre>';
 
                 return $this->redirect(['view', 'id' => $model->id]);
@@ -167,21 +172,21 @@ class QualidadeController extends Controller
         ) {
             if ($model->load(Yii::$app->request->post())) {
 
-                var_dump("<br><br><br><br>");
+                //var_dump("<br><br><br><br>");
 
                 if ("Realizada" == EstadoImplantacao::allAsMap()[$model->estado_implantacao_id]) {
                     //$model->data = '2020-06-29';
 
                     if ($model->data == '') {
-                        var_dump('<pre>');
-                        var_dump($model->oldAttributes['data']);
+                        //var_dump('<pre>');
+                        //var_dump($model->oldAttributes['data']);
                         $model->data = $model->oldAttributes['data'];
-                        var_dump('</pre>');
-                        var_dump($model->data);
+                        //var_dump('</pre>');
+                        //var_dump($model->data);
                     }
 
                     $date = new DateTime($model->data);
-                    var_dump($date->format('d/m/Y w') . '<br>');
+                    //var_dump($date->format('d/m/Y w') . '<br>');
                     if ($model->vez == 0) {
                         $date->modify('+7 day');
                         $vez = 1;
@@ -211,11 +216,12 @@ class QualidadeController extends Controller
                     }
                     $data = $date->format('d/m/Y w');
 
-                    var_dump($data);
+                    //var_dump($data);
 
                     $data = $date->format('d/m/Y');
 
                     try {
+                        //Caso de quando Qualidade conseguir contato
                         Yii::$app->mailer->compose('@app/mail/layouts/acompanhamento', [
                             "nomeResponsavel" => $model->responsavel,
                             "dataRetorno" => $data
@@ -245,12 +251,6 @@ class QualidadeController extends Controller
                             $modelQualidade->cota_ged = 0;
                             $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
 
-                            var_dump('<pre>');
-                            //var_dump($modelQualidade);
-                            //var_dump('<br><br>');
-                            var_dump($modelQualidade->validate());
-                            var_dump('</pre>');
-
                             if ($modelQualidade->save()) {
                                 return $this->redirect(['view', 'id' => $model->id]);
                             }
@@ -265,12 +265,22 @@ class QualidadeController extends Controller
 
                     $dataReagendada = $model->data;
 
-                    var_dump('<pre>');
-                    var_dump($model->oldAttributes['data']);
+                    //var_dump('<pre>');
+                    //var_dump($model->oldAttributes['data']);
                     $model->data = $model->oldAttributes['data'];
-                    var_dump('</pre>');
-                    var_dump('' . $model->data . '<br>');
-                    var_dump('' . $dataReagendada);
+                    //var_dump('</pre>');
+                    //var_dump('' . $model->data . '<br>');
+                    //var_dump('' . $dataReagendada);
+
+                    //Caso de quando Qualidade conseguir contato
+                    Yii::$app->mailer->compose('@app/mail/layouts/acompanhamento', [
+                        "nomeResponsavel" => $model->responsavel,
+                        "dataRetorno" =>  $model->data
+                    ])
+                        ->setFrom(Yii::$app->params['senderEmail'])
+                        ->setTo($model->email_responsavel)
+                        ->setSubject("Nossa próxima reunião")
+                        ->send();
 
                     if ($model->save()) {
                         $modelQualidade = new Qualidade();
@@ -292,30 +302,46 @@ class QualidadeController extends Controller
                         $modelQualidade->cota_ged = 0;
                         $modelQualidade->estado_implantacao_id = EstadoImplantacao::find()->where(['nome' => 'Pendente'])->one()->id;
 
-                        var_dump($modelQualidade->validate());
+                        //var_dump($modelQualidade->validate());
 
 
                         if ($modelQualidade->save()) {
                             return $this->redirect(['view', 'id' => $model->id]);
                         }
                     }
+                } else if ("Não Reagendada" == EstadoImplantacao::allAsMap()[$model->estado_implantacao_id]) {
 
-                    /*if ($model->save()) {
+                    if ($model->data == '') {
+                        //var_dump('<pre>');
+                        //var_dump($model->oldAttributes['data']);
+                        $model->data = $model->oldAttributes['data'];
+                        //var_dump('</pre>');
+                        //var_dump($model->data);
+                    }
+
+                    //Caso de quando Qualidade conseguir contato
+                    Yii::$app->mailer->compose('@app/mail/layouts/nao-reagendada', [
+                        "nomeResponsavel" => $model->responsavel,
+                        "dataRetorno" =>  $model->data
+                    ])
+                        ->setFrom(Yii::$app->params['senderEmail'])
+                        ->setTo($model->email_responsavel)
+                        ->setSubject("Nossa próxima reunião")
+                        ->send();
+
+
+
+                    if ($model->save()) {
                         return $this->redirect(['view', 'id' => $model->id]);
-                    }*/
-
-
-                    //if ($model->save()) {
-                    //return $this->redirect(['view', 'id' => $model->id]);
-                    //}
+                    }
                 } else {
 
                     if ($model->data == '') {
-                        var_dump('<pre>');
-                        var_dump($model->oldAttributes['data']);
+                        //var_dump('<pre>');
+                        //var_dump($model->oldAttributes['data']);
                         $model->data = $model->oldAttributes['data'];
-                        var_dump('</pre>');
-                        var_dump($model->data);
+                        //var_dump('</pre>');
+                        //var_dump($model->data);
                     }
 
                     if ($model->save()) {
@@ -336,6 +362,23 @@ class QualidadeController extends Controller
         } else {
             throw new ForbiddenHttpException("Você não pode alterar essa implantação.");
         }
+    }
+
+
+    public function actionRealizados()
+    {
+
+        $estadoRequerido = EstadoImplantacao::find()->where(['nome' => 'Realizada'])->one();
+        $dataProvider = new ActiveDataProvider([
+            'query' => Qualidade::find()->where(['<>', 'estado_implantacao_id', $estadoRequerido->id])->groupBy(['razao_social'])->where(['<', 'data', date('Y-m-d')])->orderBy('data ASC'),
+        ]);
+
+        $searchModel = new QualidadeSearch();
+
+        return $this->render('realizados', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
     }
 
     /**

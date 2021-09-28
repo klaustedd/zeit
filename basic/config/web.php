@@ -15,7 +15,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'SUA_KEY',
+            'cookieValidationKey' => 'ehrbrigregnu89tube4t89e4utn9douglas',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -36,10 +36,10 @@ $config = [
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
                 'encryption' => 'ssl',
-                'host' => 'seu_host_aqui',
-                'port' => '465',
-                'username' => 'seu_email_aqui',
-                'password' => 'sua_senha_aqui',
+                'host' => 'seu-host-aqui',
+                'port' => 'port-aqui',
+                'username' => 'usuario',
+                'password' => 'senha',
             ],
         ],
         'log' => [

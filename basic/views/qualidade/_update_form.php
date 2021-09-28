@@ -10,7 +10,11 @@ use yii\widgets\ActiveForm;
 
 <div class="implantacao-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'enableAjaxValidation' => false,
+        'validateOnChange' => false,
+        'validateOnBlur' => false
+    ]); ?>
 
     <?= $form->field($model, 'responsavel')->textInput(['maxlength' => true]) ?>
 
@@ -29,7 +33,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'razao_social')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'cnpj')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'cnpj')->textInput() ?>
 
     <?= $form->field($model, 'cota_xml')->textInput(['type' => 'number']) ?>
 
@@ -44,6 +48,8 @@ use yii\widgets\ActiveForm;
     ) ?>
 
     <?= $form->field($model, 'data')->textInput(['type' => 'date']) ?>
+
+
 
     <div class="form-group">
         <?= Html::submitButton('Salvar', ['class' => 'btn btn-success']) ?>

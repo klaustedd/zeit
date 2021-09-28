@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Usuario;
 use yii\helpers\Html;
 use yii\jui\DatePicker;
 use yii\widgets\ActiveForm;
@@ -11,22 +12,31 @@ use yii\widgets\ActiveForm;
 
 <div class="implantacao-form">
 
+        <?php if (
+            Usuario::isRole(['Vendedor'], Yii::$app->user->identity) 
+        ) {
+            $horarios = ['00:00:00'];
+        }
+            ?>
+
     <?php $form = ActiveForm::begin(); ?>
 
     <div id="data-agenda">
-        <?="Agendamento de implantação para: <span>".Yii::$app->formatter->format($data, 'date')."</span>" ?>
+        <?= "Agendamento de implantação para: <span>" . Yii::$app->formatter->format($data, 'date') . "</span>" ?>
     </div>
-    <?= Html::error($model, 'data', ['class'=>'error-summary-nopd']); ?>
+    <?= Html::error($model, 'data', ['class' => 'error-summary-nopd']); ?>
 
-    <?= $form->field($model, 'hora')->dropDownList(
-                $horarios) ?>
+    <?=
+    $form->field($model, 'hora')->dropDownList($horarios) ?>
 
     <?= $form->field($model, 'responsavel')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'telefone')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'cadastrante_id')->dropDownList(
-                $cadastrante, ['readonly'=>true]) ?>
+        $cadastrante,
+        ['readonly' => true]
+    ) ?>
 
     <?= $form->field($model, 'email_responsavel')->textInput(['maxlength' => true]) ?>
 

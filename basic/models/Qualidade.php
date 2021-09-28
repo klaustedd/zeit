@@ -47,7 +47,7 @@ class Qualidade extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [[/*'data',*/ 'responsavel', 'telefone', 'cadastrante_id', 'email_responsavel', 'razao_social', 'estado_implantacao_id', 'hora', 'cota_xml'], 'required'],
+            [[/*'data',*/'responsavel', 'telefone', 'cadastrante_id', 'email_responsavel', 'razao_social', 'estado_implantacao_id', 'hora', 'cota_xml'], 'required'],
             [['data'], 'date', 'format' => 'php:Y-m-d H:i:s'],
             [['data'], 'isNotWeekend'],
             [['cadastrante_id', 'atendente_id', 'vez', 'cota_bipagem', 'cota_ged', 'cota_xml'], 'integer'],
@@ -55,7 +55,8 @@ class Qualidade extends \yii\db\ActiveRecord
             [['responsavel', 'razao_social'], 'string', 'max' => 256],
             [['telefone', 'celular'], 'string', 'max' => 11],
             [['email_responsavel', 'nome'], 'string', 'max' => 256],
-            [['cnpj'], 'string', 'max' => 14],
+            //[['cnpj'], 'string', 'max' => 14],
+            [['cnpj'], 'isCnpj'],
             [['cadastrante_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::className(), 'targetAttribute' => ['cadastrante_id' => 'id']],
             [['atendente_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::className(), 'targetAttribute' => ['atendente_id' => 'id']],
             [['estado_implantacao_id'], 'exist', 'skipOnError' => true, 'targetClass' => EstadoImplantacao::className(), 'targetAttribute' => ['estado_implantacao_id' => 'id']],
@@ -69,6 +70,7 @@ class Qualidade extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
+            'vez' => 'D+ x',
             'nome' => 'Qualidade',
             'data' => 'Data Agendada',
             'responsavel' => 'Responsável',
@@ -154,5 +156,21 @@ class Qualidade extends \yii\db\ActiveRecord
         if (date('N', strtotime($this->data)) >= 6) {
             $this->addError('data', 'Não é possível realizar implantações em finais de semana.');
         }
+    }
+
+    public function isCnpj($attribute, $params)
+    {
+        if (!preg_match("(\d{14})", $this->cnpj) && !preg_match("/^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$/", $this->cnpj)) {
+            $this->addError('cnpj', 'Formato de CNPJ inválido.');
+        }
+    }
+
+    public function beforeSave($insert)
+    {
+        $this->cnpj = preg_replace("(\D)", "", $this->cnpj);
+        if (parent::beforeSave($insert)) {
+            return true;
+        }
+        return false;
     }
 }

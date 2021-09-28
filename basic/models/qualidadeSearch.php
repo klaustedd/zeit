@@ -4,12 +4,12 @@ namespace app\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Implantacao;
+use app\models\Qualidade;
 
 /**
- * ImplantacaoSearch represents the model behind the search form of `app\models\Implantacao`.
+ * QualidadeSearch represents the model behind the search form of `app\models\Qualidade`.
  */
-class ImplantacaoSearch extends Implantacao
+class QualidadeSearch extends Qualidade
 {
     /**
      * {@inheritdoc}
@@ -40,7 +40,7 @@ class ImplantacaoSearch extends Implantacao
      */
     public function search($params)
     {
-        $query = Implantacao::find();
+        $query = Qualidade::find();
 
         // add conditions that should always apply here
 
@@ -55,6 +55,13 @@ class ImplantacaoSearch extends Implantacao
             // $query->where('0=1');
             return $dataProvider;
         }
+
+        // grid filtering conditions
+        $query->andFilterWhere([
+            'razao_social' => $this->razao_social,
+            'cnpj' => $this->cnpj,
+            'data' => $this->data
+        ]);
 
         // grid filtering conditions
         $query->andFilterWhere([
